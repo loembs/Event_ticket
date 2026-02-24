@@ -23,10 +23,10 @@ const HeroSection = () => {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-extrabold mb-4 leading-tight">
             <span className="text-gradient">{EVENT_CONFIG.name}</span>
           </h1>
-          <p className="text-lg text-muted-foreground mb-8 max-w-xl">
+          <p className="text-lg text-white mb-8 max-w-xl">
             {EVENT_CONFIG.subtitle}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row gap-4 text-sm text-white">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary" />
               <span>{EVENT_CONFIG.date.start}</span>
