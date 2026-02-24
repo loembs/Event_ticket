@@ -1,53 +1,62 @@
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, ChevronDown, MapPin, Users } from "lucide-react";
 import { EVENT_CONFIG } from "@/lib/eventConfig";
-import heroBanner from "@/assets/hero-banner.jpg";
 import Countdown from "./Countdown";
 
 const HeroSection = () => {
   return (
-    <section className="relative w-full overflow-hidden">
-      <div className="absolute inset-0">
-        <img
-          src={heroBanner}
-          alt="Event banner"
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 hero-gradient opacity-80" />
-      </div>
-      <div className="relative z-10 container mx-auto px-4 py-16 sm:py-24">
-        <div className="max-w-3xl">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/20 text-primary text-sm font-medium mb-4 border border-primary/30">
-             Événement à venir
+    <section
+      className="relative min-h-[85vh] w-full flex items-center justify-center px-4 py-16 sm:py-24 overflow-hidden bg-[#faf8f5] bg-center bg-cover bg-no-repeat"
+      style={{ backgroundImage: 'url("https://res.cloudinary.com/dlna2kuo1/image/upload/v1771937292/IMG_2802_rwgre5.jpg")' }}
+    >
+      <div className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center text-center relative z-10">
+        {/* Section arrondie style Apple — carte blanche sur le motif design */}
+        <div className="w-full rounded-[2rem] sm:rounded-[2.5rem] bg-card border border-border/60 shadow-xl shadow-black/10 overflow-hidden px-8 sm:px-12 py-12 sm:py-16">
+          <span className="inline-block px-4 py-2 rounded-full bg-primary/15 text-primary text-xs sm:text-sm font-medium mb-6 tracking-wide">
+            Événement à venir
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-extrabold mb-4 leading-tight">
-            <span className="text-gradient">{EVENT_CONFIG.name}</span>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight text-foreground mb-4 leading-tight">
+            <span className="text-royal-blue">BESTY</span> FORUM 2026
           </h1>
-          <p className="text-lg text-white mb-8 max-w-xl">
-            {EVENT_CONFIG.subtitle}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 text-sm text-white">
+
+          <div className="flex flex-col items-center gap-1 mb-2">
+            <span className="text-xs text-muted-foreground font-medium">Cliquez ici</span>
+            <ChevronDown className="w-8 h-8 text-primary animate-bounce" aria-hidden />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => document.getElementById("etapes")?.scrollIntoView({ behavior: "smooth" })}
+            className="inline-block px-4 py-2 rounded-full bg-primary/15 text-primary text-xs sm:text-sm font-medium mb-6 tracking-wide cursor-pointer hover:bg-primary/25 transition-colors"
+          >
+            Prenez votre place pour l'événement
+          </button>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 text-base sm:text-lg font-semibold text-foreground mb-10">
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
+              <Calendar className="w-5 h-5 text-primary shrink-0" />
               <span>{EVENT_CONFIG.date.start}</span>
             </div>
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-primary" />
+              <MapPin className="w-5 h-5 text-primary shrink-0" />
               <a
                 href={EVENT_CONFIG.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary transition-colors underline underline-offset-2"
+                className="hover:text-primary transition-colors"
               >
-                {EVENT_CONFIG.location}
+                Palais des Congrès, <span className="text-royal-blue">Brazaville</span>, République du Congo
               </a>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" />
+              <Users className="w-5 h-5 text-primary shrink-0" />
               <span>{EVENT_CONFIG.organizer}</span>
             </div>
           </div>
-          <Countdown targetDate={EVENT_CONFIG.dateISO} />
+
+          <div className="flex justify-center">
+            <Countdown targetDate={EVENT_CONFIG.dateISO} />
+          </div>
         </div>
       </div>
     </section>

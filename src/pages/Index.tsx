@@ -63,7 +63,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <HeroSection />
 
-      <main className="container mx-auto px-4 py-12 max-w-3xl">
+      <main id="etapes" className="container mx-auto px-4 py-12 max-w-3xl">
         <StepIndicator steps={STEPS} currentStep={step} />
 
         {step === 0 && (
