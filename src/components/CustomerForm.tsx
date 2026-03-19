@@ -61,7 +61,7 @@ const CustomerForm = ({ name, email, phone, status, schoolOrCompany, onChange, o
           <Input
             id="phone"
             type="tel"
-            placeholder="+225 07 XX XX XX XX"
+            placeholder="+242 06 XX XX XX XX"
             value={phone}
             onChange={(e) => onChange("customerPhone", e.target.value)}
             className="bg-secondary/50 border-border"
