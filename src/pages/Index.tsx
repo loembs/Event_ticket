@@ -79,6 +79,10 @@ const Index = () => {
   const ticket = EVENT_CONFIG.tickets.find((t) => t.id === selectedTicketId);
 
   const handleCustomerNext = async () => {
+    // Open a blank tab immediately on user click to avoid popup blocking
+    // after async operations (stock check/reservation).
+    const whatsappTab = window.open("", "_blank", "noopener,noreferrer");
+
     if (!ticket) return;
     if (!customerStatus) return;
 
@@ -118,7 +122,12 @@ const Index = () => {
     const total = ticket.price * quantity;
     const message = `🎫 *NOUVELLE RESERVATION*\n━━━━━━━━━━━━━━━\n📋 *N° Commande:* ${generatedOrderId}\n🎪 *Evenement:* ${EVENT_CONFIG.name}\n📍 *Lieu:* ${EVENT_CONFIG.location}\n📅 *Date:* ${EVENT_CONFIG.date.start}\n\n🎟️ *Type:* ${ticket.name}\n🔢 *Quantite:* ${quantity}\n💰 *Total:* ${total.toLocaleString("fr-FR")} ${ticket.currency}\n\n👤 *Client:* ${customerName}\n📧 *Email:* ${customerEmail}\n📱 *Tel:* ${customerPhone}\n🏷️ *Statut:* ${customerStatus}\n🏫 *Ecole/Entreprise:* ${schoolOrCompany}\n\n📝 *Billets:*\n${ticketDetails}\n━━━━━━━━━━━━━━━`;
     const whatsappUrl = `https://wa.me/${EVENT_CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    if (whatsappTab) {
+      whatsappTab.location.href = whatsappUrl;
+    } else {
+      // Fallback if popup was still blocked.
+      window.location.href = whatsappUrl;
+    }
 
     saveOrder({
       orderId: generatedOrderId,
