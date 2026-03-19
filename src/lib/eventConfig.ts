@@ -1,5 +1,5 @@
 export const EVENT_CONFIG = {
-  name: "ORUN MOMENT",
+  name: "Afterwork des pros de la communication 2e édition",
   subtitle: "After Work PRO COM — Brazzaville, prends le relais.",
   dateISO: "2026-05-09T09:00:00",
   date: {
