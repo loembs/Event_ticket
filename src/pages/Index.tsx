@@ -14,6 +14,7 @@ import {
   AttendeeStatus,
   initStockFromSupabase,
 } from "@/lib/stockStore";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const STEPS = ["Billet", "Coordonnées", "Paiement", "Récapitulatif"];
 
@@ -29,6 +30,7 @@ const Index = () => {
   const [personalizations, setPersonalizations] = useState<TicketPersonalization[]>([]);
   const [orderId, setOrderId] = useState("");
   const [stockRefreshKey, setStockRefreshKey] = useState(0);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     initStockFromSupabase().finally(() => {
@@ -73,16 +75,11 @@ const Index = () => {
       setPersonalizations(newArr);
     }
     setStep(s);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const ticket = EVENT_CONFIG.tickets.find((t) => t.id === selectedTicketId);
 
   const handleCustomerNext = async () => {
-    // Open a blank tab immediately on user click to avoid popup blocking
-    // after async operations (stock check/reservation).
-    const whatsappTab = window.open("", "_blank", "noopener,noreferrer");
-
     if (!ticket) return;
     if (!customerStatus) return;
 
@@ -122,10 +119,16 @@ const Index = () => {
     const total = ticket.price * quantity;
     const message = `🎫 *NOUVELLE RESERVATION*\n━━━━━━━━━━━━━━━\n📋 *N° Commande:* ${generatedOrderId}\n🎪 *Evenement:* ${EVENT_CONFIG.name}\n📍 *Lieu:* ${EVENT_CONFIG.location}\n📅 *Date:* ${EVENT_CONFIG.date.start}\n\n🎟️ *Type:* ${ticket.name}\n🔢 *Quantite:* ${quantity}\n💰 *Total:* ${total.toLocaleString("fr-FR")} ${ticket.currency}\n\n👤 *Client:* ${customerName}\n📧 *Email:* ${customerEmail}\n📱 *Tel:* ${customerPhone}\n🏷️ *Statut:* ${customerStatus}\n🏫 *Ecole/Entreprise:* ${schoolOrCompany}\n\n📝 *Billets:*\n${ticketDetails}\n━━━━━━━━━━━━━━━`;
     const whatsappUrl = `https://wa.me/${EVENT_CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
-    if (whatsappTab) {
-      whatsappTab.location.href = whatsappUrl;
-    } else {
-      // Fallback if popup was still blocked.
+
+    // Mobile: avoid new-tab behavior (which can show a blank about:blank page).
+    // Desktop: try a new tab for better user flow; fallback to same-tab navigation.
+    if (isMobile) {
+      window.location.href = whatsappUrl;
+      return;
+    }
+
+    const tab = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    if (!tab) {
       window.location.href = whatsappUrl;
     }
 

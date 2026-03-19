@@ -16,7 +16,7 @@ const HeroSection = () => {
           </span>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold tracking-tight text-foreground mb-4 leading-tight">
-            <span className="text-royal-blue">After Work</span> PRO COM
+            <span className="text-royal-blue">AfterWork</span> des Pros de la Comm
           </h1>
           <p className="text-xl sm:text-2xl font-bold text-foreground mb-4">Brazzaville, prend le relais</p>
           <p className="text-base sm:text-lg font-semibold text-foreground mb-8">{EVENT_CONFIG.subtitle}</p>
