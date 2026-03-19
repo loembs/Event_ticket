@@ -54,7 +54,7 @@ const PersonalizationForm = ({
                 <Label className="text-sm">Téléphone</Label>
                 <Input
                   type="tel"
-                  placeholder="+225 07 XX XX XX XX"
+                  placeholder="+242 07 XX XX XX XX"
                   value={personalizations[i]?.phone || ""}
                   onChange={(e) => onChange(i, "phone", e.target.value)}
                   className="bg-secondary/50 border-border"
