@@ -3,6 +3,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Mail, Phone, Briefcase, GraduationCap } from "lucide-react";
 
+const DIAL_CODES = ["+242", "+221", "+225", "+243", "+237", "+33"];
+
+const parsePhone = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return { code: "+242", number: "" };
+  const match = DIAL_CODES.find((code) => trimmed.startsWith(code));
+  if (match) {
+    return { code: match, number: trimmed.slice(match.length).trim() };
+  }
+  return { code: "+242", number: trimmed };
+};
+
+const composePhone = (code: string, number: string) => `${code} ${number}`.trim();
+
 interface CustomerFormProps {
   name: string;
   email: string;
@@ -15,6 +29,7 @@ interface CustomerFormProps {
 }
 
 const CustomerForm = ({ name, email, phone, status, schoolOrCompany, onChange, onNext, onBack }: CustomerFormProps) => {
+  const parsedPhone = parsePhone(phone);
   const isValid =
     name.trim().length > 0 &&
     email.includes("@") &&
@@ -58,14 +73,28 @@ const CustomerForm = ({ name, email, phone, status, schoolOrCompany, onChange, o
           <Label htmlFor="phone" className="flex items-center gap-2 text-sm">
             <Phone className="w-4 h-4 text-primary" /> Téléphone
           </Label>
-          <Input
-            id="phone"
-            type="tel"
-            placeholder="+242 06 XX XX XX XX"
-            value={phone}
-            onChange={(e) => onChange("customerPhone", e.target.value)}
-            className="bg-secondary/50 border-border"
-          />
+          <div className="grid grid-cols-[100px_1fr] gap-2">
+            <select
+              aria-label="Indicatif téléphone"
+              value={parsedPhone.code}
+              onChange={(e) => onChange("customerPhone", composePhone(e.target.value, parsedPhone.number))}
+              className="h-10 rounded-md border border-border bg-secondary/50 px-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            >
+              {DIAL_CODES.map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </select>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="06 XX XX XX XX"
+              value={parsedPhone.number}
+              onChange={(e) => onChange("customerPhone", composePhone(parsedPhone.code, e.target.value))}
+              className="bg-secondary/50 border-border"
+            />
+          </div>
         </div>
 
         <div className="space-y-2">

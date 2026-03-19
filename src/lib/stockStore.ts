@@ -80,7 +80,10 @@ export async function reservePlaces(status: AttendeeStatus, qty: number): Promis
       await initStockFromSupabase();
       return true;
     }
-    return false;
+    // If Supabase is temporarily unreachable/unauthorized, fallback to local.
+    if (state[status] < amount) return false;
+    setStockState({ ...state, [status]: state[status] - amount });
+    return true;
   }
 
   if (state[status] < amount) return false;

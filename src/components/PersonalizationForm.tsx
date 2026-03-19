@@ -4,6 +4,20 @@ import { Label } from "@/components/ui/label";
 import { Ticket } from "lucide-react";
 import { TicketPersonalization } from "@/lib/orderStore";
 
+const DIAL_CODES = ["+242", "+221", "+225", "+243", "+237", "+33"];
+
+const parsePhone = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return { code: "+242", number: "" };
+  const match = DIAL_CODES.find((code) => trimmed.startsWith(code));
+  if (match) {
+    return { code: match, number: trimmed.slice(match.length).trim() };
+  }
+  return { code: "+242", number: trimmed };
+};
+
+const composePhone = (code: string, number: string) => `${code} ${number}`.trim();
+
 interface PersonalizationFormProps {
   quantity: number;
   ticketName: string;
@@ -33,7 +47,9 @@ const PersonalizationForm = ({
       </p>
 
       <div className="space-y-4">
-        {Array.from({ length: quantity }).map((_, i) => (
+        {Array.from({ length: quantity }).map((_, i) => {
+          const parsedPhone = parsePhone(personalizations[i]?.phone || "");
+          return (
           <div key={i} className="glass-card rounded-xl p-6 space-y-4">
             <div className="flex items-center gap-2 text-primary font-display font-semibold">
               <Ticket className="w-4 h-4" />
@@ -52,17 +68,32 @@ const PersonalizationForm = ({
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Téléphone</Label>
-                <Input
-                  type="tel"
-                  placeholder="+242 07 XX XX XX XX"
-                  value={personalizations[i]?.phone || ""}
-                  onChange={(e) => onChange(i, "phone", e.target.value)}
-                  className="bg-secondary/50 border-border"
-                />
+                <div className="grid grid-cols-[100px_1fr] gap-2">
+                  <select
+                    aria-label={`Indicatif téléphone billet ${i + 1}`}
+                    value={parsedPhone.code}
+                    onChange={(e) => onChange(i, "phone", composePhone(e.target.value, parsedPhone.number))}
+                    className="h-10 rounded-md border border-border bg-secondary/50 px-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {DIAL_CODES.map((code) => (
+                      <option key={code} value={code}>
+                        {code}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    type="tel"
+                    placeholder="07 XX XX XX XX"
+                    value={parsedPhone.number}
+                    onChange={(e) => onChange(i, "phone", composePhone(parsedPhone.code, e.target.value))}
+                    className="bg-secondary/50 border-border"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex justify-between">
