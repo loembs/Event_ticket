@@ -9,6 +9,8 @@ export interface OrderData {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerStatus?: "etudiant" | "professionnel";
+  schoolOrCompany?: string;
   personalizations: TicketPersonalization[];
   orderId: string;
   totalPrice: number;

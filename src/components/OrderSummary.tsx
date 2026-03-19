@@ -1,26 +1,31 @@
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, MessageCircle, Ticket, User } from "lucide-react";
+import { Calendar, MapPin, Ticket, User } from "lucide-react";
 import { EVENT_CONFIG } from "@/lib/eventConfig";
-import { OrderData, generateOrderId, saveOrder } from "@/lib/orderStore";
 import { TicketPersonalization } from "@/lib/orderStore";
 import { useNavigate } from "react-router-dom";
 
 interface OrderSummaryProps {
+  orderId: string;
   ticketTypeId: string;
   quantity: number;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerStatus: string;
+  schoolOrCompany: string;
   personalizations: TicketPersonalization[];
   onBack: () => void;
 }
 
 const OrderSummary = ({
+  orderId,
   ticketTypeId,
   quantity,
   customerName,
   customerEmail,
   customerPhone,
+  customerStatus,
+  schoolOrCompany,
   personalizations,
   onBack,
 }: OrderSummaryProps) => {
@@ -28,52 +33,7 @@ const OrderSummary = ({
   const ticket = EVENT_CONFIG.tickets.find((t) => t.id === ticketTypeId)!;
   const total = ticket.price * quantity;
 
-  const handleSendWhatsApp = () => {
-    const orderId = generateOrderId();
-
-    const order: OrderData = {
-      ticketTypeId,
-      quantity,
-      customerName,
-      customerEmail,
-      customerPhone,
-      personalizations,
-      orderId,
-      totalPrice: total,
-      status: "pending",
-    };
-    saveOrder(order);
-
-    const ticketDetails = personalizations
-      .map((p, i) => `  Billet ${i + 1}: ${p.name} (${p.phone})`)
-      .join("\n");
-
-    const message = `🎫 *NOUVELLE COMMANDE DE TICKETS*
-━━━━━━━━━━━━━━━
-📋 *N° Commande:* ${orderId}
-🎪 *Événement:* ${EVENT_CONFIG.name}
-📍 *Lieu:* ${EVENT_CONFIG.location}
-📅 *Date:* ${EVENT_CONFIG.date.start}
-
-🎟️ *Type:* ${ticket.name}
-🔢 *Quantité:* ${quantity}
-💰 *Total:* ${total.toLocaleString("fr-FR")} ${ticket.currency}
-
-👤 *Client:* ${customerName}
-📧 *Email:* ${customerEmail}
-📱 *Tél:* ${customerPhone}
-
-📝 *Détails des billets:*
-${ticketDetails}
-━━━━━━━━━━━━━━━
-⏳ En attente de confirmation de paiement`;
-
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${EVENT_CONFIG.whatsappNumber}?text=${encodedMessage}`;
-
-    window.open(whatsappUrl, "_blank");
-
-    // Navigate to pending page
+  const handleContinue = () => {
     navigate(`/order/${orderId}`);
   };
 
@@ -126,6 +86,9 @@ ${ticketDetails}
             <User className="w-4 h-4 text-primary" />
             {customerName} — {customerEmail} — {customerPhone}
           </div>
+          <div className="text-sm text-muted-foreground">
+            Statut: {customerStatus} — {schoolOrCompany}
+          </div>
         </div>
 
         <div className="h-px bg-border" />
@@ -144,8 +107,7 @@ ${ticketDetails}
 
       <div className="glass-card rounded-xl p-4 border-primary/30 bg-primary/5">
         <p className="text-sm text-muted-foreground text-center">
-          📱 En cliquant sur le bouton ci-dessous, votre commande sera envoyée au service client via WhatsApp.
-          Après confirmation de votre paiement, votre ticket sera généré automatiquement.
+          Votre réservation a deja ete envoyee sur WhatsApp. Verifiez maintenant le statut de votre commande.
         </p>
       </div>
 
@@ -154,11 +116,10 @@ ${ticketDetails}
           Retour
         </Button>
         <Button
-          onClick={handleSendWhatsApp}
-          className="px-8 font-display font-semibold gap-2 text-base"
+          onClick={handleContinue}
+          className="px-8 font-display font-semibold text-base"
         >
-          <MessageCircle className="w-5 h-5" />
-          Envoyer via WhatsApp
+          Voir le statut de la commande
         </Button>
       </div>
     </div>

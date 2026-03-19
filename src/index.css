@@ -5,59 +5,58 @@
 @tailwind utilities;
 
 @layer base {
-  /* Thème par défaut : Blanc + Orange (design organique) */
+  /* Thème par défaut : Vert + Bleu + Gris clair */
   :root {
-    --background: 40 25% 98%;
-    --foreground: 20 20% 12%;
+    --background: 210 20% 97%;
+    --foreground: 220 20% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 20% 12%;
+    --card-foreground: 220 20% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 20% 12%;
+    --popover-foreground: 220 20% 14%;
 
-    --primary: 28 95% 55%;
+    --primary: 165 85% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 40% 94%;
-    --secondary-foreground: 20 20% 12%;
+    --secondary: 210 22% 92%;
+    --secondary-foreground: 220 20% 14%;
 
-    --muted: 35 20% 94%;
-    --muted-foreground: 20 10% 42%;
+    --muted: 210 18% 92%;
+    --muted-foreground: 220 10% 42%;
 
-    --accent: 28 90% 50%;
+    --accent: 236 80% 57%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 15% 90%;
-    --input: 35 15% 90%;
-    --ring: 28 95% 55%;
+    --border: 210 18% 86%;
+    --input: 210 18% 86%;
+    --ring: 236 80% 57%;
 
     --radius: 1rem;
 
-    --sidebar-background: 40 25% 98%;
-    --sidebar-foreground: 20 20% 12%;
-    --sidebar-primary: 28 95% 55%;
+    --sidebar-background: 210 20% 97%;
+    --sidebar-foreground: 220 20% 14%;
+    --sidebar-primary: 165 85% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 40% 94%;
-    --sidebar-accent-foreground: 20 20% 12%;
-    --sidebar-border: 35 15% 90%;
-    --sidebar-ring: 28 95% 55%;
+    --sidebar-accent: 210 22% 92%;
+    --sidebar-accent-foreground: 220 20% 14%;
+    --sidebar-border: 210 18% 86%;
+    --sidebar-ring: 236 80% 57%;
 
-    /* Custom tokens — orange vibrant */
-    --hero-gradient: linear-gradient(135deg, hsl(40 25% 98%) 0%, hsl(35 30% 96%) 50%, hsl(28 60% 95%) 100%);
+    /* Custom tokens — affiche (vert / bleu / gris clair) */
+    --hero-gradient: linear-gradient(135deg, hsl(210 20% 97%) 0%, hsl(205 26% 95%) 50%, hsl(224 30% 94%) 100%);
     --glass-bg: hsla(0, 0%, 100%, 0.85);
-    --glass-border: hsla(28, 30%, 85%, 0.4);
-    --glow-primary: 0 0 40px hsla(28, 95%, 55%, 0.25);
-    --glow-accent: 0 0 40px hsla(28, 90%, 50%, 0.2);
-    --step-active: hsl(28 95% 55%);
+    --glass-border: hsla(210, 20%, 75%, 0.4);
+    --glow-primary: 0 0 40px hsla(165, 85%, 40%, 0.22);
+    --glow-accent: 0 0 40px hsla(236, 80%, 57%, 0.2);
+    --step-active: hsl(165 85% 40%);
     --step-done: hsl(150 55% 42%);
-    --step-pending: hsl(35 15% 88%);
-    --organic-orange: hsl(28 95% 55%);
-    --organic-cream: hsl(40 30% 97%);
-    /* Bleu roi — quatrième couleur */
+    --step-pending: hsl(210 14% 82%);
+    --organic-orange: hsl(165 70% 45%);
+    --organic-cream: hsl(210 20% 97%);
     --royal-blue: 225 73% 50%;
   }
 
@@ -71,7 +70,7 @@
     --popover: 220 25% 10%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 28 95% 55%;
+    --primary: 165 82% 45%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 60% 20%;
@@ -80,7 +79,7 @@
     --muted: 220 20% 16%;
     --muted-foreground: 215 20% 60%;
 
-    --accent: 28 90% 50%;
+    --accent: 236 82% 64%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -88,15 +87,15 @@
 
     --border: 220 20% 18%;
     --input: 220 20% 18%;
-    --ring: 28 95% 55%;
+    --ring: 236 82% 64%;
 
     --glass-bg: hsla(220, 25%, 12%, 0.7);
     --glass-border: hsla(210, 40%, 98%, 0.08);
-    --glow-primary: 0 0 40px hsla(28, 95%, 55%, 0.3);
-    --step-active: hsl(28 95% 55%);
+    --glow-primary: 0 0 40px hsla(165, 82%, 45%, 0.28);
+    --step-active: hsl(165 82% 45%);
     --step-done: hsl(150 60% 45%);
     --step-pending: hsl(220 20% 25%);
-    --organic-orange: hsl(28 95% 55%);
+    --organic-orange: hsl(165 82% 45%);
     --organic-cream: hsl(220 30% 8%);
     --royal-blue: 225 70% 58%;
   }
@@ -139,17 +138,17 @@
   .organic-bg {
     background-color: var(--organic-cream);
     background-image: 
-      radial-gradient(ellipse 80% 70% at 20% 30%, hsl(28 95% 55% / 0.35) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 60% at 80% 70%, hsl(28 90% 55% / 0.3) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 80% at 50% 90%, hsl(30 92% 58% / 0.25) 0%, transparent 45%),
-      radial-gradient(ellipse 90% 50% at 70% 20%, hsl(28 95% 55% / 0.2) 0%, transparent 50%),
-      radial-gradient(ellipse 50% 90% at 10% 60%, hsl(26 95% 52% / 0.28) 0%, transparent 48%);
+      radial-gradient(ellipse 80% 70% at 20% 30%, hsl(165 82% 45% / 0.28) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 60% at 80% 70%, hsl(236 82% 60% / 0.24) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 80% at 50% 90%, hsl(165 75% 42% / 0.2) 0%, transparent 45%),
+      radial-gradient(ellipse 90% 50% at 70% 20%, hsl(236 75% 58% / 0.16) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 90% at 10% 60%, hsl(210 22% 78% / 0.22) 0%, transparent 48%);
     background-size: 100% 100%;
   }
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(28 95% 50%), hsl(32 90% 55%));
+    background-image: linear-gradient(135deg, hsl(165 85% 40%), hsl(236 80% 57%));
   }
 
   .text-royal-blue {
@@ -166,8 +165,8 @@
   }
 
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px hsla(28, 95%, 55%, 0.25); }
-    50% { box-shadow: 0 0 40px hsla(28, 95%, 55%, 0.4); }
+    0%, 100% { box-shadow: 0 0 20px hsla(165, 85%, 40%, 0.24); }
+    50% { box-shadow: 0 0 40px hsla(236, 80%, 57%, 0.36); }
   }
 
   .animate-pulse-glow {

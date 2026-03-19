@@ -1,7 +1,8 @@
 import { Minus, Plus, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EVENT_CONFIG, TicketType } from "@/lib/eventConfig";
+import { EVENT_CONFIG } from "@/lib/eventConfig";
 import { cn } from "@/lib/utils";
+import { getAvailablePlaces } from "@/lib/stockStore";
 
 interface TicketSelectorProps {
   selectedTicketId: string;
@@ -24,28 +25,38 @@ const TicketSelector = ({
     <div className="space-y-6">
       <h2 className="text-2xl font-display font-bold">Choisissez votre billet</h2>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {EVENT_CONFIG.tickets.map((ticket) => (
-          <button
-            key={ticket.id}
-            onClick={() => onSelectTicket(ticket.id)}
-            className={cn(
-              "glass-card rounded-xl p-6 text-left transition-all duration-300 cursor-pointer hover:scale-[1.02]",
-              selectedTicketId === ticket.id
-                ? "border-primary glow-primary"
-                : "border-border hover:border-muted-foreground/30"
-            )}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <Ticket className="w-5 h-5 text-primary" />
-              <span className="font-display font-semibold text-lg">{ticket.name}</span>
-            </div>
-            <p className="text-muted-foreground text-sm mb-4">{ticket.description}</p>
-            <p className="text-2xl font-display font-bold text-accent">
-              {ticket.price.toLocaleString("fr-FR")} <span className="text-sm font-normal text-muted-foreground">{ticket.currency}</span>
-            </p>
-          </button>
-        ))}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {EVENT_CONFIG.tickets.map((ticket) => {
+          const available = getAvailablePlaces(ticket.id as "etudiant" | "professionnel");
+          const soldOut = available <= 0;
+
+          return (
+            <button
+              key={ticket.id}
+              onClick={() => !soldOut && onSelectTicket(ticket.id)}
+              disabled={soldOut}
+              className={cn(
+                "glass-card rounded-xl p-6 text-left transition-all duration-300 cursor-pointer hover:scale-[1.02]",
+                selectedTicketId === ticket.id
+                  ? "border-primary glow-primary"
+                  : "border-border hover:border-muted-foreground/30",
+                soldOut && "opacity-60 cursor-not-allowed hover:scale-100"
+              )}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Ticket className="w-5 h-5 text-primary" />
+                <span className="font-display font-semibold text-lg">{ticket.name}</span>
+              </div>
+              <p className="text-muted-foreground text-sm mb-4">{ticket.description}</p>
+              <p className="text-2xl font-display font-bold text-accent">
+                {ticket.price.toLocaleString("fr-FR")} <span className="text-sm font-normal text-muted-foreground">{ticket.currency}</span>
+              </p>
+              <p className="mt-2 text-xs font-semibold">
+                {soldOut ? "SOLD OUT" : `${available} place(s) restante(s)`}
+              </p>
+            </button>
+          );
+        })}
       </div>
 
       {selectedTicket && (
@@ -65,7 +76,11 @@ const TicketSelector = ({
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => onQuantityChange(Math.min(10, quantity + 1))}
+                onClick={() => {
+                  if (!selectedTicket) return;
+                  const available = getAvailablePlaces(selectedTicket.id as "etudiant" | "professionnel");
+                  onQuantityChange(Math.min(available, quantity + 1));
+                }}
                 className="rounded-full"
               >
                 <Plus className="w-4 h-4" />

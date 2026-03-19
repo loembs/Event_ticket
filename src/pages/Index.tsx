@@ -1,14 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HeroSection from "@/components/HeroSection";
 import StepIndicator from "@/components/StepIndicator";
 import TicketSelector from "@/components/TicketSelector";
 import CustomerForm from "@/components/CustomerForm";
-import PersonalizationForm from "@/components/PersonalizationForm";
+import PaymentStep from "@/components/PaymentStep";
 import OrderSummary from "@/components/OrderSummary";
-import { TicketPersonalization } from "@/lib/orderStore";
+import { generateOrderId, saveOrder, TicketPersonalization } from "@/lib/orderStore";
 import { EVENT_CONFIG } from "@/lib/eventConfig";
+import {
+  reservePlaces,
+  getAvailablePlaces,
+  isSoldOutAll,
+  AttendeeStatus,
+  initStockFromSupabase,
+} from "@/lib/stockStore";
 
-const STEPS = ["Billet", "Coordonnées", "Personnalisation", "Récapitulatif"];
+const STEPS = ["Billet", "Coordonnées", "Paiement", "Récapitulatif"];
 
 const Index = () => {
   const [step, setStep] = useState(0);
@@ -17,7 +24,17 @@ const Index = () => {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerStatus, setCustomerStatus] = useState<"" | AttendeeStatus>("");
+  const [schoolOrCompany, setSchoolOrCompany] = useState("");
   const [personalizations, setPersonalizations] = useState<TicketPersonalization[]>([]);
+  const [orderId, setOrderId] = useState("");
+  const [stockRefreshKey, setStockRefreshKey] = useState(0);
+
+  useEffect(() => {
+    initStockFromSupabase().finally(() => {
+      setStockRefreshKey((v) => v + 1);
+    });
+  }, []);
 
   const handleSelectTicket = (id: string) => {
     setSelectedTicketId(id);
@@ -37,6 +54,8 @@ const Index = () => {
     if (field === "customerName") setCustomerName(value);
     if (field === "customerEmail") setCustomerEmail(value);
     if (field === "customerPhone") setCustomerPhone(value);
+    if (field === "customerStatus") setCustomerStatus(value as AttendeeStatus);
+    if (field === "schoolOrCompany") setSchoolOrCompany(value);
   };
 
   const handlePersonalizationChange = (index: number, field: string, value: string) => {
@@ -57,7 +76,69 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const ticketName = EVENT_CONFIG.tickets.find((t) => t.id === selectedTicketId)?.name || "";
+  const ticket = EVENT_CONFIG.tickets.find((t) => t.id === selectedTicketId);
+
+  const handleCustomerNext = async () => {
+    if (!ticket) return;
+    if (!customerStatus) return;
+
+    const expectedTicketId = customerStatus === "etudiant" ? "etudiant" : "professionnel";
+    if (selectedTicketId !== expectedTicketId) {
+      alert("Le statut doit correspondre au type de billet choisi.");
+      return;
+    }
+
+    const available = getAvailablePlaces(customerStatus);
+    if (available < quantity) {
+      alert(`Places insuffisantes. Il reste ${available} place(s) pour ${customerStatus}.`);
+      return;
+    }
+
+    const reserved = await reservePlaces(customerStatus, quantity);
+    if (!reserved) {
+      alert("Impossible de reserver ces places pour le moment.");
+      await initStockFromSupabase();
+      setStockRefreshKey((v) => v + 1);
+      return;
+    }
+    setStockRefreshKey((v) => v + 1);
+
+    const generatedOrderId = generateOrderId();
+    setOrderId(generatedOrderId);
+
+    const ticketDetails = Array.from({ length: quantity })
+      .map((_, i) => {
+        const p = personalizations[i];
+        const name = p?.name?.trim() || customerName;
+        const phone = p?.phone?.trim() || customerPhone;
+        return `  Billet ${i + 1}: ${name} (${phone})`;
+      })
+      .join("\n");
+
+    const total = ticket.price * quantity;
+    const message = `🎫 *NOUVELLE RESERVATION*\n━━━━━━━━━━━━━━━\n📋 *N° Commande:* ${generatedOrderId}\n🎪 *Evenement:* ${EVENT_CONFIG.name}\n📍 *Lieu:* ${EVENT_CONFIG.location}\n📅 *Date:* ${EVENT_CONFIG.date.start}\n\n🎟️ *Type:* ${ticket.name}\n🔢 *Quantite:* ${quantity}\n💰 *Total:* ${total.toLocaleString("fr-FR")} ${ticket.currency}\n\n👤 *Client:* ${customerName}\n📧 *Email:* ${customerEmail}\n📱 *Tel:* ${customerPhone}\n🏷️ *Statut:* ${customerStatus}\n🏫 *Ecole/Entreprise:* ${schoolOrCompany}\n\n📝 *Billets:*\n${ticketDetails}\n━━━━━━━━━━━━━━━`;
+    const whatsappUrl = `https://wa.me/${EVENT_CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+
+    saveOrder({
+      orderId: generatedOrderId,
+      ticketTypeId: selectedTicketId,
+      quantity,
+      customerName,
+      customerEmail,
+      customerPhone,
+      customerStatus,
+      schoolOrCompany,
+      personalizations: Array.from({ length: quantity }).map((_, i) => ({
+        name: personalizations[i]?.name || customerName,
+        phone: personalizations[i]?.phone || customerPhone,
+      })),
+      totalPrice: total,
+      status: "pending",
+    });
+
+    goToStep(2);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,6 +149,7 @@ const Index = () => {
 
         {step === 0 && (
           <TicketSelector
+            key={stockRefreshKey}
             selectedTicketId={selectedTicketId}
             quantity={quantity}
             onSelectTicket={handleSelectTicket}
@@ -81,18 +163,16 @@ const Index = () => {
             name={customerName}
             email={customerEmail}
             phone={customerPhone}
+            status={customerStatus}
+            schoolOrCompany={schoolOrCompany}
             onChange={handleCustomerChange}
-            onNext={() => goToStep(2)}
+            onNext={handleCustomerNext}
             onBack={() => goToStep(0)}
           />
         )}
 
         {step === 2 && (
-          <PersonalizationForm
-            quantity={quantity}
-            ticketName={ticketName}
-            personalizations={personalizations}
-            onChange={handlePersonalizationChange}
+          <PaymentStep
             onNext={() => goToStep(3)}
             onBack={() => goToStep(1)}
           />
@@ -100,11 +180,14 @@ const Index = () => {
 
         {step === 3 && (
           <OrderSummary
+            orderId={orderId}
             ticketTypeId={selectedTicketId}
             quantity={quantity}
             customerName={customerName}
             customerEmail={customerEmail}
             customerPhone={customerPhone}
+            customerStatus={customerStatus}
+            schoolOrCompany={schoolOrCompany}
             personalizations={personalizations}
             onBack={() => goToStep(2)}
           />
@@ -114,7 +197,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2026 {EVENT_CONFIG.organizer} — Tous droits réservés</p>
+          <p>© 2026 {EVENT_CONFIG.organizer} — {isSoldOutAll() ? "SOLD OUT" : `Places: Etudiants ${getAvailablePlaces("etudiant")} / Professionnels ${getAvailablePlaces("professionnel")}`}</p>
         </div>
       </footer>
     </div>
