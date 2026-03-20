@@ -12,16 +12,13 @@ const PaymentStep = ({ onBack, onFinishReservation }: PaymentStepProps) => {
       <h2 className="text-2xl font-display font-bold">Paiement mobile money</h2>
 
       <div className="glass-card rounded-xl p-6 space-y-4">
-        <p className="text-base font-semibold text-foreground">
-          Veillez a present effectuer votre paiement via Airtelmoney ou MTNmoney au numero :
-          {" "}
-          {EVENT_CONFIG.paymentNumber}.
-        </p>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground">Important :</span> votre réservation ne sera prise en compte
-          qu&apos;après réception et vérification du paiement. Une fois le virement effectué, cliquez sur{" "}
-          <span className="font-medium text-foreground">Terminer la réservation</span> pour envoyer vos informations sur WhatsApp
-          et finaliser la demande.
+          <span className="font-medium text-foreground">Important :</span>Les paiements de tickets se font uniquement sur MTN et AIRTEL money, Veuillez cliquer sur{" "}
+          <span className="font-medium text-foreground">Terminer la réservation</span> pour confirmer votre commande.
+
+          Vous serez redirigé vers WhatsApp et un conseiller prendra votre demande en charge.
+
+          <span className="font-medium text-foreground">Merci pour votre intérêt.</span>
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
