@@ -3,10 +3,10 @@ import { EVENT_CONFIG } from "@/lib/eventConfig";
 
 interface PaymentStepProps {
   onBack: () => void;
-  onNext: () => void;
+  onFinishReservation: () => void;
 }
 
-const PaymentStep = ({ onBack, onNext }: PaymentStepProps) => {
+const PaymentStep = ({ onBack, onFinishReservation }: PaymentStepProps) => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-display font-bold">Paiement mobile money</h2>
@@ -17,8 +17,11 @@ const PaymentStep = ({ onBack, onNext }: PaymentStepProps) => {
           {" "}
           {EVENT_CONFIG.paymentNumber}.
         </p>
-        <p className="text-sm text-muted-foreground">
-          Votre reservation sera prise en compte et nous vous enverrons votre place.
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          <span className="font-medium text-foreground">Important :</span> votre réservation ne sera prise en compte
+          qu&apos;après réception et vérification du paiement. Une fois le virement effectué, cliquez sur{" "}
+          <span className="font-medium text-foreground">Terminer la réservation</span> pour envoyer vos informations sur WhatsApp
+          et finaliser la demande.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -35,8 +38,8 @@ const PaymentStep = ({ onBack, onNext }: PaymentStepProps) => {
         <Button variant="outline" onClick={onBack} className="font-display">
           Retour
         </Button>
-        <Button onClick={onNext} className="font-display font-semibold">
-          J'ai effectue le paiement
+        <Button onClick={onFinishReservation} className="font-display font-semibold">
+          Terminer la réservation
         </Button>
       </div>
     </div>

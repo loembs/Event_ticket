@@ -106,8 +106,9 @@ const OrderSummary = ({
       </div>
 
       <div className="glass-card rounded-xl p-4 border-primary/30 bg-primary/5">
-        <p className="text-sm text-muted-foreground text-center">
-          Votre réservation a deja ete envoyee sur WhatsApp. Verifiez maintenant le statut de votre commande.
+        <p className="text-sm text-muted-foreground text-center leading-relaxed">
+          Vos informations ont été envoyées sur WhatsApp. La réservation sera validée après vérification du paiement.
+          Vous pouvez suivre l&apos;état de votre commande ci-dessous.
         </p>
       </div>
 

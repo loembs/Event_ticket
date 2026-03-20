@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import HeroSection from "@/components/HeroSection";
 import StepIndicator from "@/components/StepIndicator";
 import TicketSelector from "@/components/TicketSelector";
 import CustomerForm from "@/components/CustomerForm";
 import PaymentStep from "@/components/PaymentStep";
 import OrderSummary from "@/components/OrderSummary";
-import { generateOrderId, saveOrder, TicketPersonalization } from "@/lib/orderStore";
+import { generateOrderId, getOrderById, saveOrder, TicketPersonalization } from "@/lib/orderStore";
 import { EVENT_CONFIG } from "@/lib/eventConfig";
 import {
   reservePlaces,
@@ -14,11 +15,15 @@ import {
   AttendeeStatus,
   initStockFromSupabase,
 } from "@/lib/stockStore";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const STEPS = ["Billet", "Coordonnées", "Paiement", "Récapitulatif"];
 
+const RECAP_PARAM = "recap";
+const PENDING_RECAP_KEY = "ticketflow_pending_recap_order_id";
+
 const Index = () => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -30,13 +35,66 @@ const Index = () => {
   const [personalizations, setPersonalizations] = useState<TicketPersonalization[]>([]);
   const [orderId, setOrderId] = useState("");
   const [stockRefreshKey, setStockRefreshKey] = useState(0);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     initStockFromSupabase().finally(() => {
       setStockRefreshKey((v) => v + 1);
     });
   }, []);
+
+  /** Après redirection même onglet vers WhatsApp : retrouver le récap via ?recap= ou sessionStorage. */
+  useEffect(() => {
+    const paramId = searchParams.get(RECAP_PARAM)?.trim();
+    let storedId: string | null = null;
+    try {
+      storedId = sessionStorage.getItem(PENDING_RECAP_KEY)?.trim() || null;
+    } catch {
+      /* navigation privée, etc. */
+    }
+    const id = paramId || storedId;
+    if (!id) return;
+
+    const order = getOrderById(id);
+    if (!order) {
+      try {
+        sessionStorage.removeItem(PENDING_RECAP_KEY);
+      } catch {
+        /* ignore */
+      }
+      if (paramId) setSearchParams({}, { replace: true });
+      return;
+    }
+
+    try {
+      sessionStorage.removeItem(PENDING_RECAP_KEY);
+    } catch {
+      /* ignore */
+    }
+
+    setOrderId(order.orderId);
+    setSelectedTicketId(order.ticketTypeId);
+    setQuantity(order.quantity);
+    setCustomerName(order.customerName);
+    setCustomerEmail(order.customerEmail);
+    setCustomerPhone(order.customerPhone);
+    setCustomerStatus(order.customerStatus ?? "");
+    setSchoolOrCompany(order.schoolOrCompany ?? "");
+    setPersonalizations(
+      order.personalizations.length > 0
+        ? order.personalizations
+        : Array.from({ length: order.quantity }, () => ({
+            name: order.customerName,
+            phone: order.customerPhone,
+          }))
+    );
+    setStep(3);
+
+    if (paramId) setSearchParams({}, { replace: true });
+
+    requestAnimationFrame(() => {
+      document.getElementById("etapes")?.scrollIntoView({ behavior: "smooth" });
+    });
+  }, [searchParams, setSearchParams]);
 
   const handleSelectTicket = (id: string) => {
     setSelectedTicketId(id);
@@ -107,31 +165,7 @@ const Index = () => {
     const generatedOrderId = generateOrderId();
     setOrderId(generatedOrderId);
 
-    const ticketDetails = Array.from({ length: quantity })
-      .map((_, i) => {
-        const p = personalizations[i];
-        const name = p?.name?.trim() || customerName;
-        const phone = p?.phone?.trim() || customerPhone;
-        return `  Billet ${i + 1}: ${name} (${phone})`;
-      })
-      .join("\n");
-
     const total = ticket.price * quantity;
-    const message = `🎫 *NOUVELLE RESERVATION*\n━━━━━━━━━━━━━━━\n📋 *N° Commande:* ${generatedOrderId}\n🎪 *Evenement:* ${EVENT_CONFIG.name}\n📍 *Lieu:* ${EVENT_CONFIG.location}\n📅 *Date:* ${EVENT_CONFIG.date.start}\n\n🎟️ *Type:* ${ticket.name}\n🔢 *Quantite:* ${quantity}\n💰 *Total:* ${total.toLocaleString("fr-FR")} ${ticket.currency}\n\n👤 *Client:* ${customerName}\n📧 *Email:* ${customerEmail}\n📱 *Tel:* ${customerPhone}\n🏷️ *Statut:* ${customerStatus}\n🏫 *Ecole/Entreprise:* ${schoolOrCompany}\n\n📝 *Billets:*\n${ticketDetails}\n━━━━━━━━━━━━━━━`;
-    const whatsappUrl = `https://wa.me/${EVENT_CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
-
-    // Mobile: avoid new-tab behavior (which can show a blank about:blank page).
-    // Desktop: try a new tab for better user flow; fallback to same-tab navigation.
-    if (isMobile) {
-      window.location.href = whatsappUrl;
-      return;
-    }
-
-    const tab = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-    if (!tab) {
-      window.location.href = whatsappUrl;
-    }
-
     saveOrder({
       orderId: generatedOrderId,
       ticketTypeId: selectedTicketId,
@@ -150,6 +184,41 @@ const Index = () => {
     });
 
     goToStep(2);
+  };
+
+  const getWhatsAppReservationUrl = (): string | null => {
+    if (!ticket || !orderId) return null;
+
+    const ticketDetails = Array.from({ length: quantity })
+      .map((_, i) => {
+        const p = personalizations[i];
+        const name = p?.name?.trim() || customerName;
+        const phone = p?.phone?.trim() || customerPhone;
+        return `  Billet ${i + 1}: ${name} (${phone})`;
+      })
+      .join("\n");
+
+    const total = ticket.price * quantity;
+    const message = `🎫 *NOUVELLE RESERVATION*\n━━━━━━━━━━━━━━━\n📋 *N° Commande:* ${orderId}\n🎪 *Evenement:* ${EVENT_CONFIG.name}\n📍 *Lieu:* ${EVENT_CONFIG.location}\n📅 *Date:* ${EVENT_CONFIG.date.start}\n\n🎟️ *Type:* ${ticket.name}\n🔢 *Quantite:* ${quantity}\n💰 *Total:* ${total.toLocaleString("fr-FR")} ${ticket.currency}\n\n👤 *Client:* ${customerName}\n📧 *Email:* ${customerEmail}\n📱 *Tel:* ${customerPhone}\n🏷️ *Statut:* ${customerStatus}\n🏫 *Ecole/Entreprise:* ${schoolOrCompany}\n\n📝 *Billets:*\n${ticketDetails}\n━━━━━━━━━━━━━━━`;
+    return `https://wa.me/${EVENT_CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
+  };
+
+  const handleFinishReservation = () => {
+    const whatsappUrl = getWhatsAppReservationUrl();
+    if (!whatsappUrl) return;
+
+    const tab = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    if (!tab) {
+      try {
+        sessionStorage.setItem(PENDING_RECAP_KEY, orderId);
+      } catch {
+        /* ignore */
+      }
+      navigate(`/?${RECAP_PARAM}=${encodeURIComponent(orderId)}`, { replace: true });
+      window.location.href = whatsappUrl;
+      return;
+    }
+    goToStep(3);
   };
 
   return (
@@ -185,7 +254,7 @@ const Index = () => {
 
         {step === 2 && (
           <PaymentStep
-            onNext={() => goToStep(3)}
+            onFinishReservation={handleFinishReservation}
             onBack={() => goToStep(1)}
           />
         )}
